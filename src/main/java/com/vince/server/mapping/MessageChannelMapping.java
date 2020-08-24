@@ -1,11 +1,13 @@
 package com.vince.server.mapping;
 
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+@Slf4j
 public class MessageChannelMapping {
 
     public static final MessageChannelMapping INSTANCE = new MessageChannelMapping();

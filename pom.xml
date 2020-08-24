@@ -42,11 +42,20 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.31.Final</version>
         </dependency>
-
-        <dependency>
+		<dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+        </dependency>
+<!--         <dependency>
             <groupId>com.vince</groupId>
             <artifactId>tk-plugin-logback</artifactId>
             <version>3.0.0</version>
+        </dependency> -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.6</version>
         </dependency>
 
     </dependencies>

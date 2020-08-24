@@ -3,18 +3,21 @@ package com.vince.server.handler;
 import com.vince.protocol.MessagePacket;
 import com.vince.protocol.device.RcvMessagePacket;
 import com.vince.server.mapping.MessageChannelMapping;
-import com.vince.toolkit.base.exception.BusinessException;
-import com.vince.toolkit.framework.util.log.LogUtil;
+//import com.vince.toolkit.base.exception.BusinessException;
+//import com.vince.toolkit.framework.util.log.LogUtil;
 import com.vince.util.BytesDeserializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+@Slf4j
 public class MessageDecoder extends ByteToMessageDecoder {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(MessageDecoder.class);
@@ -57,7 +60,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
                 int cmdData = MessagePacket.deserializeCmd(header);
                 long deviceNo = MessagePacket.deserializeDeviceNo(header);
                 byte[] packet = buildPacket(header, body);
-                LogUtil.info(LOGGER, "接收到正确的协议,DEVICE_NO[{}],CMD[{}],[{}]",
+                log.info("接收到正确的协议,DEVICE_NO[{}],CMD[{}],[{}]",
                         deviceNo, Integer.toHexString(cmdData),
                         BytesDeserializer.convertBytesToHexStr(packet));
                 mappingChannel(context, deviceNo);
@@ -69,10 +72,11 @@ public class MessageDecoder extends ByteToMessageDecoder {
     }
 
     //保存设备和channel的映射关系
-    private void mappingChannel(ChannelHandlerContext context, long deviceNo) {
+    private void mappingChannel(ChannelHandlerContext context, long deviceNo)throws Exception {
         Channel c = MessageChannelMapping.INSTANCE.getChannel(deviceNo);
         if (c != null && c.isActive()) {
-            throw new BusinessException("设备编号[%d]已存在链接[%s],该链接[%s]请求异常", deviceNo, c.id().asLongText(), context.channel().id().asLongText());
+        	String str=String.format("设备编号[%d]已存在链接[%s],该链接[%s]请求异常", deviceNo, c.id().asLongText(), context.channel().id().asLongText());
+            throw new Exception(str);
         }
         MessageChannelMapping.INSTANCE.putMapping(deviceNo, context.channel());
     }
@@ -80,7 +84,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         MessageChannelMapping.INSTANCE.removeChannel(ctx.channel());
-        LogUtil.info(LOGGER, "CHANNEL_INACTIVE,channel[{}]", ctx.channel().id().asLongText());
+        log.info("CHANNEL_INACTIVE,channel[{}]", ctx.channel().id().asLongText());
         super.channelInactive(ctx);
     }
 
@@ -92,7 +96,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel c = ctx.channel();
-        LogUtil.error(LOGGER, cause.getMessage());
+        log.error(cause.getMessage());
         if (c.isOpen()) {
             c.close();
         }
@@ -111,7 +115,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
         if (dataLen > MAX_PACKET_LEN) {
             err = new byte[dataLen];
             in.readBytes(err);
-            LogUtil.error(LOGGER,
+            log.error(
                     "数据异常，解析到的数据长度[{}]超过包最大长度[{}],包头:[{}],错误包体[{}]",
                     dataLen, MAX_PACKET_LEN,
                     BytesDeserializer.convertBytesToHexStr(header),
@@ -125,7 +129,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
             }
             if (now - timespan < MAX_SECOND_PER_PACKET) {
                 //未到超时时间
-                LogUtil.warn(LOGGER,
+                log.warn(
                         "数据异常，解析到的数据长度[{}]超过缓冲区长度[{}],timespan[{}],包头:[{}]",
                         dataLen, readableLen, (now - timespan),
                         BytesDeserializer.convertBytesToHexStr(header));
@@ -133,7 +137,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
             } else {
                 err = new byte[readableLen];
                 in.readBytes(err);
-                LogUtil.error(LOGGER,
+                log.error(
                         "数据异常，解析到的数据长度[{}]超过缓冲区长度[{}],timespan[{}],包头:[{}],错误包体[{}]",
                         dataLen, readableLen, (now - timespan),
                         BytesDeserializer.convertBytesToHexStr(header),
