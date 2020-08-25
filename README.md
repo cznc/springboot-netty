@@ -1,3 +1,8 @@
+
+https://www.jianshu.com/p/903498747f47
+https://www.imooc.com/article/291714
+https://blog.csdn.net/SmallCatBaby/article/details/89877926
+
 # springboot-netty
 用springboot集成了netty server，针对自定义私有协议的拆包组包，并对粘包，半包问题进行处理，实现链接保持并保存协议内容和channel关系，需要心跳来保持链接，超时未收到数据断开链接。
 # Dashboard
